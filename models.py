@@ -27,6 +27,12 @@ class User(db.Model, SerializerMixin):
     role = db.Column(db.Enum("tourist", "host","driver", name="user_roles"), default="tourist", nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
+    accommodations = db.relationship('Accommodation', back_populates='host', cascade='all, delete-orphan')
+    transports = db.relationship('Transport', back_populates='driver', cascade='all, delete-orphan')
+    accommodation_bookings = db.relationship('AccommodationBooking', back_populates='tourist', cascade='all, delete-orphan')
+    transport_bookings = db.relationship('TransportBooking', back_populates='tourist', cascade='all, delete-orphan')
+
+
 
 class Accommodation(db.Model, SerializerMixin):
     __tablename__ = 'accommodations'
@@ -39,6 +45,12 @@ class Accommodation(db.Model, SerializerMixin):
     host_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
+
+    host = db.relationship('User', back_populates='accommodations')
+    bookings = db.relationship('AccommodationBooking', back_populates='accommodation', cascade='all, delete-orphan')
+
+
+
 class Transport(db.Model,SerializerMixin):
     __tablename__ = 'transports'
     id = db.Column(db.Integer, primary_key=True)
@@ -47,6 +59,10 @@ class Transport(db.Model,SerializerMixin):
     available = db.Column(db.Boolean, default=True, nullable=False)
     price_per_day = db.Column(db.Float, nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
+
+   
+    driver = db.relationship('User', back_populates='transports')
+    bookings = db.relationship('TransportBooking', back_populates='transport', cascade='all, delete-orphan', lazy='dynamic')
 
 class AccommodationBooking(db.Model, SerializerMixin):
     __tablename__ = 'accommodation_bookings'
@@ -59,6 +75,10 @@ class AccommodationBooking(db.Model, SerializerMixin):
     status = db.Column(db.Enum("pending", "confirmed", "cancelled", name="booking_status"), default="pending", nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
+    
+    tourist = db.relationship('User', back_populates='accommodation_bookings')
+    accommodation = db.relationship('Accommodation', back_populates='bookings')
+
 
 class TransportBooking(db.Model, SerializerMixin):
     __tablename__ = 'transport_bookings'
@@ -70,5 +90,9 @@ class TransportBooking(db.Model, SerializerMixin):
     total_price = db.Column(db.Float, nullable=False)
     status = db.Column(db.Enum("pending", "confirmed", "cancelled", name="booking_status"), default="pending", nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
+
+
+    tourist = db.relationship('User', back_populates='transport_bookings')
+    transport = db.relationship('Transport', back_populates='bookings')
 
 # WIP - Models here
