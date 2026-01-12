@@ -1,15 +1,28 @@
+import os
 from flask import Flask
+from flask_restful import Api
 from flask_migrate import Migrate
+from flask_cors import CORS
+from flask_bcrypt import Bcrypt
+from flask_jwt_extended import JWTManager
+from dotenv import load_dotenv
 from models import db
+
+load_dotenv()
 
 app = Flask(__name__)
 
-# Database configuration
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///tickets.db"
-app.config["SQLALCHEMY_ECHO"] = True  # Enable query logging
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///safariconnect.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ECHO'] = True
+app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
 
-# Initialize migrations
-migrate = Migrate(app, db)
-
-# Link database to Flask app
 db.init_app(app)
+migrate = Migrate(app, db)
+api = Api(app)
+bcrypt = Bcrypt(app)
+jwt = JWTManager(app)
+CORS(app, supports_credentials=True, origins=['http://localhost:3000'])
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
