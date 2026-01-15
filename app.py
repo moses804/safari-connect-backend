@@ -35,7 +35,8 @@ api.add_resource(AccommodationBookingResource, '/accommodation_bookings')
 api.add_resource(AccommodationBookingByID, '/accommodation_bookings/<int:id>')
 
 # Register Routes
-api.add_resource(AccommodationResource)
+api.add_resource(AccommodationResource, '/accommodations', '/accommodations/<int:id>')
+api.add_resource(TransportResource, '/transports', '/transports/<int:id>')
 
 @app.route("/")
 def health_check():

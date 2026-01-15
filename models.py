@@ -42,6 +42,7 @@ class Accommodation(db.Model, SerializerMixin):
     location = db.Column(db.String(), nullable=False)
     available= db.Column(db.Boolean, default=True, nullable=False)
     price_per_night = db.Column(db.Float, nullable=False)
+    capacity = db.Column(db.Integer, nullable=False)
     host_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
@@ -65,6 +66,7 @@ class Transport(db.Model,SerializerMixin):
     vehicle_type = db.Column(db.String(), nullable=False)
     available = db.Column(db.Boolean, default=True, nullable=False)
     price_per_day = db.Column(db.Float, nullable=False)
+    total_capacity = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
    

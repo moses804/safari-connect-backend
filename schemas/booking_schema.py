@@ -3,6 +3,14 @@ from datetime import datetime
 
 
 parser=reqparse.RequestParser()
+parser.add_argument(
+    'accommodation_id',
+    type=int,
+    required=True,
+    help='accommodation_id required'
+)
+
+
 parser.add_argument(  'check_in_date',
     type=lambda s: datetime.strptime(s, '%Y-%m-%d').date(),
     required=True,
@@ -36,6 +44,14 @@ parser.add_argument(
 #Trnsport booking parser
 
 transport_parser=reqparse.RequestParser()
+
+transport_parser.add_argument(
+    'transport_id',
+    type=int,
+    required=True,
+    help='transport_id required'
+)
+
 transport_parser.add_argument(  'travel_date',
     type=lambda s: datetime.strptime(s, '%Y-%m-%d').date(),
     required=True,
