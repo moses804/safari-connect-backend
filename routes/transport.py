@@ -90,5 +90,4 @@ class TransportResource(Resource):
       db.session.commit()
         
       return {"message": "Transport deleted successfully"}
-    
 
