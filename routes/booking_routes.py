@@ -26,7 +26,30 @@ class TransportBookingResource(Resource):
             return {"message": "Transport booking not found"}, 404
         return data.to_dict(), 200
     
-
+    # updating
+    def patch(self, id):
+        booking = TransportBooking.query.filter_by(id=id).first()
+        if not booking:
+            return {"message": "Transport booking not found"}, 404
+        
+        # Parse arguments
+        data = transport_parser.parse_args()
+        for key, value in data.items():
+            if value is not None:
+                setattr(booking, key, value)
+        
+        db.session.commit()
+        return booking.to_dict(), 200
+    
+    #deleting
+    def delete(self, id):
+        data = TransportBooking.query.filter_by(id=id).first()
+        if not data:
+            return {"message": "Transport booking not found"}, 404
+        
+        db.session.delete(data)
+        db.session.commit()
+        return {"message": "Transport booking deleted successfully"}, 200
 
 
 
