@@ -30,12 +30,7 @@ parser.add_argument(
     help='status must be one of: pending, confirmed, cancelled'
 )
 
-parser.add_argument(
-    'tourist_id',
-    type=int,
-    required=True,
-    help='tourist_id required and must be an integer'
-)
+
 
 
 #Trnsport booking parser
@@ -69,12 +64,7 @@ transport_parser.add_argument(
     help='status must be one of: pending, confirmed, cancelled'
 )   
 
-transport_parser.add_argument(
-    'tourist_id',
-    type=int,
-    required=True,
-    help='tourist_id required and must be an integer'
-)   
+ 
 
 
 
