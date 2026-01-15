@@ -7,6 +7,7 @@ from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
 from models import db
+from routes.booking_routes import AccommodationBookingResource, TransportBookingResource, AccommodationBookingByID, TransportBookingByID
 
 load_dotenv()
 
@@ -19,10 +20,19 @@ app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
 
 db.init_app(app)
 migrate = Migrate(app, db)
-api = Api(app)
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 CORS(app, supports_credentials=True, origins=['http://localhost:3000'])
+api = Api(app)
+
+api.add_resource(TransportBookingResource, '/transport_bookings')
+api.add_resource(TransportBookingByID, '/transport_bookings/<int:id>')
+api.add_resource(AccommodationBookingResource, '/accommodation_bookings')
+api.add_resource(AccommodationBookingByID, '/accommodation_bookings/<int:id>')
+
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
