@@ -278,3 +278,4 @@ class AccommodationBookingByID(Resource):
         db.session.commit()
         return {"message": "Accommodation booking deleted successfully"}, 200
 
+#wip
