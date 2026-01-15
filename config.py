@@ -1,0 +1,19 @@
+import os
+from datetime import timedelta
+
+class Config:
+    SQLALCHEMY_DATABASE_URI = os.getenv(
+        "DATABASE_URL",
+        "sqlite:///safariconnect.db"
+    )
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ECHO = True
+
+    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
+
+    # JWT (Member 1)
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-jwt-secret")
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)
+
+    # CORS
+    CORS_ORIGINS = ["http://localhost:3000"]
