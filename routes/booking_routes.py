@@ -1,12 +1,12 @@
-from flask_restful import Resource, abort
-from flask import request
+from flask_restful import Resource
+from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity
 from schemas.booking_schema import parser, transport_parser
 from models import db, AccommodationBooking, TransportBooking
 
 class TransportBookingResource(Resource):
+    @jwt_required()
     def post(self):
         data = transport_parser.parse_args()
-
         # 1. Fetch transport capacity
         transport = TransportBooking.query.get(data['transport_id'])
         
@@ -71,7 +71,20 @@ class TransportBookingByID(Resource):
     
 
 class AccommodationBookingResource(Resource) :
+    @jwt_required()
     def post(self):
+        # user's role and identity from JWT
+        claims = get_jwt()
+        role = claims.get("role")
+        current_user_id = get_jwt_identity()
+
+        if role == 'host':    
+            data = AccommodationBooking.query.all()
+        else:
+            # Regular users see only their own bookings
+            data = AccommodationBooking.query.filter_by(tourist_id=current_user_id).all()
+            return [booking.to_dict() for booking in data], 200
+                
         # Parse data using your accommodation-specific parser
         data = parser.parse_args()
 
