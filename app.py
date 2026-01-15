@@ -9,6 +9,11 @@ from dotenv import load_dotenv
 from models import db
 from routes.booking_routes import AccommodationBookingResource, TransportBookingResource, AccommodationBookingByID, TransportBookingByID
 
+# Importing routes
+from routes.accommodation_routes import AccommodationListResource, AccommodationDetailResource
+from routes.transport_routes import TransportListResource, TransportDetailResource
+
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -21,7 +26,7 @@ app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
 db.init_app(app)
 migrate = Migrate(app, db)
 bcrypt = Bcrypt(app)
-jwt = JWTManager(app)
+jwt = JWTManager(app) # Connect JWT to flask app - Enables create_access_token and @jwt_required() decorator
 CORS(app, supports_credentials=True, origins=['http://localhost:3000'])
 api = Api(app)
 
@@ -32,6 +37,12 @@ api.add_resource(AccommodationBookingByID, '/accommodation_bookings/<int:id>')
 
 
 
+
+
+
+
+# Register Routes
+api.add_resource(AccommodationListResource)
 
 
 if __name__ == '__main__':
