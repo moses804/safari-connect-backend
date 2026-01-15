@@ -50,7 +50,7 @@ class TransportResource(Resource):
     data = parser.parse_args()
 
     transport = Transport(**data)
-
+    db.session.add(transport)
     db.session.commit()
 
     return {"message": "Transport created successfully"}, 201
@@ -62,7 +62,7 @@ class TransportResource(Resource):
     
     data = update_parser.parse_args()
 
-    transport = Transport = Transport.query.filter(Transport.id == id).first()
+    transport = Transport.query.filter(Transport.id == id).first()
 
     if transport is None:
       return {"message":"Transport not found"}, 404

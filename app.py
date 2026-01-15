@@ -10,8 +10,8 @@ from models import db
 from routes.booking_routes import AccommodationBookingResource, TransportBookingResource, AccommodationBookingByID, TransportBookingByID
 
 # Importing routes
-from routes.accommodation_routes import AccommodationListResource, AccommodationDetailResource
-from routes.transport_routes import TransportListResource, TransportDetailResource
+from routes.accomodations import AccommodationResource
+from routes.transport import TransportResource
 
 
 load_dotenv()
@@ -42,7 +42,8 @@ api.add_resource(AccommodationBookingByID, '/accommodation_bookings/<int:id>')
 
 
 # Register Routes
-api.add_resource(AccommodationListResource)
+api.add_resource(AccommodationResource, '/accommodations', '/accommodations/<int:id>')
+api.add_resource(TransportResource, '/transports', '/transports/<int:id>')
 
 
 if __name__ == '__main__':
