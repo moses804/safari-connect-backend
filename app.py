@@ -1,49 +1,45 @@
-import os
 from flask import Flask
 from flask_restful import Api
 from flask_migrate import Migrate
 from flask_cors import CORS
-from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
-from models import db
+from config import Config
 from routes.booking_routes import AccommodationBookingResource, TransportBookingResource, AccommodationBookingByID, TransportBookingByID
-
+from extensions import db, bcrypt, jwt
+import models 
 # Importing routes
-from routes.accommodation_routes import AccommodationListResource, AccommodationDetailResource
-from routes.transport_routes import TransportListResource, TransportDetailResource
+from routes.auth_routes import auth_bp
+from routes.accommodation_routes import AccommodationResource
+from routes.transport import TransportResource
 
 
 load_dotenv()
 
 app = Flask(__name__)
-
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///safariconnect.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ECHO'] = True
-app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
+app.config.from_object(Config)
 
 db.init_app(app)
+bcrypt.init_app(app)
 migrate = Migrate(app, db)
-bcrypt = Bcrypt(app)
-jwt = JWTManager(app) # Connect JWT to flask app - Enables create_access_token and @jwt_required() decorator
-CORS(app, supports_credentials=True, origins=['http://localhost:3000'])
+jwt.init_app(app)
+
+CORS(app, supports_credentials=True, origins=app.config["CORS_ORIGINS"])
 api = Api(app)
+
+app.register_blueprint(auth_bp, url_prefix="/auth")
 
 api.add_resource(TransportBookingResource, '/transport_bookings')
 api.add_resource(TransportBookingByID, '/transport_bookings/<int:id>')
 api.add_resource(AccommodationBookingResource, '/accommodation_bookings')
 api.add_resource(AccommodationBookingByID, '/accommodation_bookings/<int:id>')
 
-
-
-
-
-
-
 # Register Routes
-api.add_resource(AccommodationListResource)
+api.add_resource(AccommodationResource)
 
+@app.route("/")
+def health_check():
+    return {"status": "SafariConnect API running"}, 200
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
