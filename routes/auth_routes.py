@@ -53,7 +53,12 @@ def register():
 
     try:
         user = register_user(data)
-        return user.to_dict(), 201
+        # Generate token immediately after registration
+        token = create_access_token(
+            identity=user.id,
+            additional_claims={"role": user.role}
+        )
+        return {"access_token": token, "user": user.to_dict()}, 201
     except ValueError as e:
         return {"error": str(e)}, 400
 
