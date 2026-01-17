@@ -4,19 +4,31 @@ from flask_jwt_extended import (
     jwt_required,
     get_jwt_identity
 )
+import re
 
 from models import db, User  # keep this consistent with how your team imports
 
 auth_bp = Blueprint("auth", __name__)
 
+# ----------------- VALIDATION HELPERS -----------------
+def validate_phone_number(phone):
+    """Validate phone number format (supports various formats)"""
+    # Allow digits, spaces, dashes, parentheses, and leading +
+    pattern = r'^[\d\s\-\+\(\)]{7,20}$'
+    return bool(re.match(pattern, phone))
+
 # ----------------- SERVICE HELPERS (in same file) -----------------
 def register_user(data):
     if User.query.filter_by(email=data["email"]).first():
         raise ValueError("Email already exists")
+    
+    if User.query.filter_by(phone_number=data["phone_number"]).first():
+        raise ValueError("Phone number already registered")
 
     user = User(
         name=data["name"],
         email=data["email"],
+        phone_number=data["phone_number"],
         role=data.get("role", "tourist")
     )
     user.set_password(data["password"])
@@ -43,9 +55,13 @@ def login_user(email, password):
 def register():
     data = request.get_json() or {}
 
-    required = ["name", "email", "password"]
+    required = ["name", "email", "phone_number", "password"]
     if not all(k in data and data[k] for k in required):
-        return {"error": "name, email, password are required"}, 400
+        return {"error": "name, email, phone_number, password are required"}, 400
+
+    # Validate phone number format
+    if not validate_phone_number(data["phone_number"]):
+        return {"error": "Invalid phone number format"}, 400
 
     # optional role validation
     if "role" in data and data["role"] not in ("tourist", "host", "driver"):
