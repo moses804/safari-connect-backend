@@ -28,10 +28,18 @@ class User(db.Model, SerializerMixin):
     #when the get method by id is called it will show both accommodation and transport bookings without password hash
     serializer_rules = (
         '-password_hash',
-        '-accommodation_bookings.tourist',      # Cut User→booking→User loops
-        '-transport_bookings.tourist',
-        '-accommodations.host',                 # Cut host loops (for hosts)
+        '-accommodations',                    # Prevent User→accommodations circular reference
+        '-accommodations.host',               # Prevent deeper nesting
+        '-accommodations.bookings',
+        '-transports',                        # Prevent User→transports circular reference
         '-transports.driver',
+        '-transports.bookings',
+        '-accommodation_bookings',            # Prevent User→booking circular reference
+        '-accommodation_bookings.tourist',
+        '-accommodation_bookings.accommodation',
+        '-transport_bookings',                # Prevent User→booking circular reference
+        '-transport_bookings.tourist',
+        '-transport_bookings.transport',
         )
 
 class Accommodation(db.Model, SerializerMixin):
@@ -50,12 +58,38 @@ class Accommodation(db.Model, SerializerMixin):
     host = db.relationship('User', back_populates='accommodations')
     bookings = db.relationship('AccommodationBooking', back_populates='accommodation', cascade='all, delete-orphan')
 
-    serializer_rules = (
-    '-host.accommodations',     # Prevent: accom → host → all accoms
-    '-host.transports',
-    '-bookings.accommodation',  # Prevent: booking → accom → all bookings
-    '-bookings.tourist',
-)
+    def to_dict(self, include_relationships=False):
+        """Custom to_dict to prevent infinite recursion."""
+        data = {
+            'id': self.id,
+            'title': self.title,
+            'description': self.description,
+            'location': self.location,
+            'available': self.available,
+            'price_per_night': self.price_per_night,
+            'capacity': self.capacity,
+            'host_id': self.host_id,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+        
+        if include_relationships:
+            # Include host info but NOT nested relationships from host
+            data['host'] = {
+                'id': self.host.id,
+                'name': self.host.name,
+                'email': self.host.email,
+                'phone_number': self.host.phone_number,
+            }
+            # Include bookings summary but avoid recursion
+            data['bookings'] = [{
+                'id': b.id,
+                'check_in_date': b.check_in_date.isoformat() if b.check_in_date else None,
+                'check_out_date': b.check_out_date.isoformat() if b.check_out_date else None,
+                'total_price': b.total_price,
+                'status': b.status,
+            } for b in self.bookings]
+        
+        return data
 
 
 
@@ -74,12 +108,36 @@ class Transport(db.Model,SerializerMixin):
     driver = db.relationship('User', back_populates='transports')
     bookings = db.relationship('TransportBooking', back_populates='transport', cascade='all, delete-orphan', lazy='dynamic')
 
-    serializer_rules = (
-        '-driver.accommodations',   # Prevent: transport → driver → all accoms
-        '-driver.transports',
-        '-bookings.transport',      # Prevent: booking → transport → all bookings
-        '-bookings.tourist',
-    )
+    def to_dict(self, include_relationships=False):
+        """Custom to_dict to prevent infinite recursion."""
+        data = {
+            'id': self.id,
+            'driver_id': self.driver_id,
+            'vehicle_type': self.vehicle_type,
+            'available': self.available,
+            'price_per_day': self.price_per_day,
+            'total_capacity': self.total_capacity,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+        
+        if include_relationships:
+            # Include driver info but NOT nested relationships from driver
+            data['driver'] = {
+                'id': self.driver.id,
+                'name': self.driver.name,
+                'email': self.driver.email,
+                'phone_number': self.driver.phone_number,
+            }
+            # Include bookings summary but avoid recursion
+            data['bookings'] = [{
+                'id': b.id,
+                'travel_date': b.travel_date.isoformat() if b.travel_date else None,
+                'seats_booked': b.seats_booked,
+                'total_price': b.total_price,
+                'status': b.status,
+            } for b in self.bookings]
+        
+        return data
 
 class AccommodationBooking(db.Model, SerializerMixin):
     __tablename__ = 'accommodation_bookings'
@@ -98,10 +156,20 @@ class AccommodationBooking(db.Model, SerializerMixin):
     accommodation = db.relationship('Accommodation', back_populates='bookings')
 
     serializer_rules = (
-        '-tourist.accommodation_bookings',  # Cut User→booking loops
+        '-tourist',                              # Prevent booking→tourist circular reference
+        '-tourist.password_hash',
+        '-tourist.accommodations',
+        '-tourist.transports',
+        '-tourist.accommodation_bookings',
         '-tourist.transport_bookings',
+        '-accommodation',                        # Prevent booking→accommodation circular reference
         '-accommodation.host',
         '-accommodation.bookings',
+        '-accommodation.host.password_hash',
+        '-accommodation.host.accommodations',
+        '-accommodation.host.transports',
+        '-accommodation.host.accommodation_bookings',
+        '-accommodation.host.transport_bookings',
     )
 
 
@@ -123,9 +191,19 @@ class TransportBooking(db.Model, SerializerMixin):
     transport = db.relationship('Transport', back_populates='bookings')
 
     serializer_rules = (
-            '-tourist.accommodation_bookings',
-            '-tourist.transport_bookings',
-            '-transport.driver',
-            '-transport.bookings',
-        )
+        '-tourist',                              # Prevent booking→tourist circular reference
+        '-tourist.password_hash',
+        '-tourist.accommodations',
+        '-tourist.transports',
+        '-tourist.accommodation_bookings',
+        '-tourist.transport_bookings',
+        '-transport',                            # Prevent booking→transport circular reference
+        '-transport.driver',
+        '-transport.bookings',
+        '-transport.driver.password_hash',
+        '-transport.driver.accommodations',
+        '-transport.driver.transports',
+        '-transport.driver.accommodation_bookings',
+        '-transport.driver.transport_bookings',
+    )
     
