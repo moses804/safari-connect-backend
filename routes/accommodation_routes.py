@@ -31,14 +31,34 @@ class AccommodationResource(Resource):
         if id is None:
             # Get all accommodations
             accommodations = Accommodation.query.all()
-            return [acc.to_dict() for acc in accommodations]
-        
+            return [{
+                'id': acc.id,
+                'title': acc.title,
+                'description': acc.description,
+                'location': acc.location,
+                'price_per_night': acc.price_per_night,
+                'capacity': acc.capacity,
+                'available': acc.available,
+                'host_id': acc.host_id,
+                'created_at': acc.created_at.isoformat() if acc.created_at else None
+            } for acc in accommodations]
+
         # Get single accommodation
         accommodation = Accommodation.query.filter(Accommodation.id == id).first()
         if accommodation is None:
             return {"message": "Accommodation not found"}, 404
-        
-        return accommodation.to_dict()
+
+        return {
+            'id': accommodation.id,
+            'title': accommodation.title,
+            'description': accommodation.description,
+            'location': accommodation.location,
+            'price_per_night': accommodation.price_per_night,
+            'capacity': accommodation.capacity,
+            'available': accommodation.available,
+            'host_id': accommodation.host_id,
+            'created_at': accommodation.created_at.isoformat() if accommodation.created_at else None
+        }
     
     @jwt_required()
     def post(self):

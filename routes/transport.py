@@ -25,14 +25,30 @@ class TransportResource(Resource):
     if id is None:
       transports = Transport.query.all()
 
-      return [transport.to_dict() for transport in transports]
-    
+      return [{
+          'id': t.id,
+          'vehicle_type': t.vehicle_type,
+          'price_per_day': t.price_per_day,
+          'total_capacity': t.total_capacity,
+          'available': t.available,
+          'driver_id': t.driver_id,
+          'created_at': t.created_at.isoformat() if t.created_at else None
+      } for t in transports]
+
     transport = Transport.query.filter(Transport.id == id).first()
 
     if transport is None:
       return {"message": "Transport not found"}, 404
-    
-    return transport.to_dict()
+
+    return {
+        'id': transport.id,
+        'vehicle_type': transport.vehicle_type,
+        'price_per_day': transport.price_per_day,
+        'total_capacity': transport.total_capacity,
+        'available': transport.available,
+        'driver_id': transport.driver_id,
+        'created_at': transport.created_at.isoformat() if transport.created_at else None
+    }
   
   @jwt_required()
   def post(self):
