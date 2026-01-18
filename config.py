@@ -16,4 +16,9 @@ class Config:
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)
 
     # CORS
-    CORS_ORIGINS = ["http://localhost:3000"]
+    CORS_ORIGINS = [
+        "http://localhost:3000",
+        "http://localhost:5173",  # Vite default dev server
+        "http://127.0.0.1:5173",
+        "http://localhost:5174",  # Alternative Vite port
+    ]

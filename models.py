@@ -50,11 +50,13 @@ class Accommodation(db.Model, SerializerMixin):
     bookings = db.relationship('AccommodationBooking', back_populates='accommodation', cascade='all, delete-orphan')
 
     serializer_rules = (
-    '-host.accommodations',     # Prevent: accom → host → all accoms
-    '-host.transports',
-    '-bookings.accommodation',  # Prevent: booking → accom → all bookings
-    '-bookings.tourist',
-)
+        '-host.accommodations',           # Prevent: accom → host → all accoms
+        '-host.transports',
+        '-host.accommodation_bookings',   # Prevent: accom → host → bookings
+        '-host.transport_bookings',
+        '-bookings.accommodation',        # Prevent: booking → accom → all bookings
+        '-bookings.tourist',
+    )
 
 
 
@@ -74,9 +76,11 @@ class Transport(db.Model,SerializerMixin):
     bookings = db.relationship('TransportBooking', back_populates='transport', cascade='all, delete-orphan', lazy='dynamic')
 
     serializer_rules = (
-        '-driver.accommodations',   # Prevent: transport → driver → all accoms
+        '-driver.accommodations',        # Prevent: transport → driver → all accoms
         '-driver.transports',
-        '-bookings.transport',      # Prevent: booking → transport → all bookings
+        '-driver.accommodation_bookings', # Prevent: transport → driver → bookings
+        '-driver.transport_bookings',
+        '-bookings.transport',           # Prevent: booking → transport → all bookings
         '-bookings.tourist',
     )
 
