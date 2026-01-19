@@ -1,7 +1,8 @@
 # 📋 SafariConnect Backend - README
 
 ---
-
+## The frontend link
+- https://github.com/moses804/safari-connect-frontend.git
 ## 🌍 Project Overview
 
 **SafariConnect** is a tourism booking platform for Kenya that connects tourists with accommodation providers (hosts) and transport services (drivers). Users can browse listings, make bookings, and manage their travel experiences all in one place.
