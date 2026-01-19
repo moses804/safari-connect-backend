@@ -53,7 +53,21 @@ def register():
 
     try:
         user = register_user(data)
-        return user.to_dict(), 201
+        # Generate token immediately after registration
+        token = create_access_token(
+            identity=user.id,
+            additional_claims={"role": user.role}
+        )
+        return {
+            "access_token": token,
+            "user": {
+                'id': user.id,
+                'name': user.name,
+                'email': user.email,
+                'role': user.role,
+                'created_at': user.created_at.isoformat() if user.created_at else None
+            }
+        }, 201
     except ValueError as e:
         return {"error": str(e)}, 400
 
@@ -67,7 +81,16 @@ def login():
 
     try:
         token, user = login_user(data["email"], data["password"])
-        return {"access_token": token, "user": user.to_dict()}, 200
+        return {
+            "access_token": token,
+            "user": {
+                'id': user.id,
+                'name': user.name,
+                'email': user.email,
+                'role': user.role,
+                'created_at': user.created_at.isoformat() if user.created_at else None
+            }
+        }, 200
     except ValueError as e:
         return {"error": str(e)}, 401
 
@@ -81,4 +104,10 @@ def me():
     if not user:
         return {"error": "User not found"}, 404
 
-    return user.to_dict(), 200
+    return {
+        'id': user.id,
+        'name': user.name,
+        'email': user.email,
+        'role': user.role,
+        'created_at': user.created_at.isoformat() if user.created_at else None
+    }, 200

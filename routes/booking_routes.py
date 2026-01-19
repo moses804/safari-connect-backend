@@ -57,8 +57,17 @@ class TransportBookingResource(Resource):
             bookings = TransportBooking.query.all()
         else:
             return {"message": "Invalid role"}, 403
-        
-        return [booking.to_dict() for booking in bookings], 200
+
+        return [{
+            'id': b.id,
+            'tourist_id': b.tourist_id,
+            'transport_id': b.transport_id,
+            'travel_date': b.travel_date.isoformat() if b.travel_date else None,
+            'seats_booked': b.seats_booked,
+            'total_price': b.total_price,
+            'status': b.status,
+            'created_at': b.created_at.isoformat() if b.created_at else None
+        } for b in bookings], 200
         
 class TransportBookingByID(Resource):
     @jwt_required()
@@ -80,8 +89,17 @@ class TransportBookingByID(Resource):
             transport = Transport.query.get(booking.transport_id)
             if not transport or transport.driver_id != current_user_id:
                 return {"message": "Access denied"}, 403
-        
-        return booking.to_dict(), 200
+
+        return {
+            'id': booking.id,
+            'tourist_id': booking.tourist_id,
+            'transport_id': booking.transport_id,
+            'travel_date': booking.travel_date.isoformat() if booking.travel_date else None,
+            'seats_booked': booking.seats_booked,
+            'total_price': booking.total_price,
+            'status': booking.status,
+            'created_at': booking.created_at.isoformat() if booking.created_at else None
+        }, 200
     
     @jwt_required()
     def patch(self, id):
@@ -108,9 +126,18 @@ class TransportBookingByID(Resource):
         for key, value in data.items():
             if value is not None:
                 setattr(booking, key, value)
-        
+
         db.session.commit()
-        return booking.to_dict(), 200
+        return {
+            'id': booking.id,
+            'tourist_id': booking.tourist_id,
+            'transport_id': booking.transport_id,
+            'travel_date': booking.travel_date.isoformat() if booking.travel_date else None,
+            'seats_booked': booking.seats_booked,
+            'total_price': booking.total_price,
+            'status': booking.status,
+            'created_at': booking.created_at.isoformat() if booking.created_at else None
+        }, 200
     
     @jwt_required()
     def delete(self, id):
@@ -197,8 +224,17 @@ class AccommodationBookingResource(Resource):
             bookings = AccommodationBooking.query.all()
         else:
             return {"message": "Invalid role"}, 403
-        
-        return [booking.to_dict() for booking in bookings], 200
+
+        return [{
+            'id': b.id,
+            'tourist_id': b.tourist_id,
+            'accommodation_id': b.accommodation_id,
+            'check_in_date': b.check_in_date.isoformat() if b.check_in_date else None,
+            'check_out_date': b.check_out_date.isoformat() if b.check_out_date else None,
+            'total_price': b.total_price,
+            'status': b.status,
+            'created_at': b.created_at.isoformat() if b.created_at else None
+        } for b in bookings], 200
     
 
 class AccommodationBookingByID(Resource):
@@ -222,8 +258,17 @@ class AccommodationBookingByID(Resource):
             accommodation = Accommodation.query.get(booking.accommodation_id)
             if not accommodation or accommodation.host_id != current_user_id:
                 return {"message": "Access denied"}, 403
-        
-        return booking.to_dict(), 200
+
+        return {
+            'id': booking.id,
+            'tourist_id': booking.tourist_id,
+            'accommodation_id': booking.accommodation_id,
+            'check_in_date': booking.check_in_date.isoformat() if booking.check_in_date else None,
+            'check_out_date': booking.check_out_date.isoformat() if booking.check_out_date else None,
+            'total_price': booking.total_price,
+            'status': booking.status,
+            'created_at': booking.created_at.isoformat() if booking.created_at else None
+        }, 200
 
     @jwt_required()
     def patch(self, id):
@@ -250,9 +295,18 @@ class AccommodationBookingByID(Resource):
         for key, value in data.items():
             if value is not None:
                 setattr(booking, key, value)
-        
+
         db.session.commit()
-        return booking.to_dict(), 200
+        return {
+            'id': booking.id,
+            'tourist_id': booking.tourist_id,
+            'accommodation_id': booking.accommodation_id,
+            'check_in_date': booking.check_in_date.isoformat() if booking.check_in_date else None,
+            'check_out_date': booking.check_out_date.isoformat() if booking.check_out_date else None,
+            'total_price': booking.total_price,
+            'status': booking.status,
+            'created_at': booking.created_at.isoformat() if booking.created_at else None
+        }, 200
 
     @jwt_required()
     def delete(self, id):
@@ -277,5 +331,129 @@ class AccommodationBookingByID(Resource):
         db.session.delete(booking)
         db.session.commit()
         return {"message": "Accommodation booking deleted successfully"}, 200
+
+class HostBookingsResource(Resource):
+    @jwt_required()
+    def get(self):
+        """Get all bookings for all accommodations owned by the host"""
+        claims = get_jwt()
+        role = claims.get("role")
+        current_user_id = get_jwt_identity()
+        
+        if role != 'host':
+            return {"message": "Access denied. Host access only."}, 403
+        
+        # Get all bookings for accommodations owned by this host
+        bookings = AccommodationBooking.query.join(Accommodation).filter(
+            Accommodation.host_id == current_user_id
+        ).all()
+
+        return [{
+            'id': b.id,
+            'tourist_id': b.tourist_id,
+            'accommodation_id': b.accommodation_id,
+            'check_in_date': b.check_in_date.isoformat() if b.check_in_date else None,
+            'check_out_date': b.check_out_date.isoformat() if b.check_out_date else None,
+            'total_price': b.total_price,
+            'status': b.status,
+            'created_at': b.created_at.isoformat() if b.created_at else None
+        } for b in bookings], 200
+
+class HostAccommodationBookingsResource(Resource):
+    @jwt_required()
+    def get(self, accommodation_id):
+        """Get all bookings for a specific accommodation"""
+        claims = get_jwt()
+        role = claims.get("role")
+        current_user_id = get_jwt_identity()
+        
+        if role != 'host':
+            return {"message": "Access denied. Host access only."}, 403
+        
+        # Check if the accommodation exists and belongs to this host
+        accommodation = Accommodation.query.filter_by(id=accommodation_id).first()
+        if not accommodation:
+            return {"message": "Accommodation not found"}, 404
+        
+        if accommodation.host_id != current_user_id:
+            return {"message": "Access denied. You don't own this accommodation."}, 403
+        
+        # Get all bookings for this accommodation
+        bookings = AccommodationBooking.query.filter_by(
+            accommodation_id=accommodation_id
+        ).all()
+
+        return [{
+            'id': b.id,
+            'tourist_id': b.tourist_id,
+            'accommodation_id': b.accommodation_id,
+            'check_in_date': b.check_in_date.isoformat() if b.check_in_date else None,
+            'check_out_date': b.check_out_date.isoformat() if b.check_out_date else None,
+            'total_price': b.total_price,
+            'status': b.status,
+            'created_at': b.created_at.isoformat() if b.created_at else None
+        } for b in bookings], 200
+
+class DriverBookingsResource(Resource):
+    @jwt_required()
+    def get(self):
+        """Get all bookings for all transports owned by the driver"""
+        claims = get_jwt()
+        role = claims.get("role")
+        current_user_id = get_jwt_identity()
+        
+        if role != 'driver':
+            return {"message": "Access denied. Driver access only."}, 403
+        
+        # Get all bookings for transports owned by this driver
+        bookings = TransportBooking.query.join(Transport).filter(
+            Transport.driver_id == current_user_id
+        ).all()
+
+        return [{
+            'id': b.id,
+            'tourist_id': b.tourist_id,
+            'transport_id': b.transport_id,
+            'travel_date': b.travel_date.isoformat() if b.travel_date else None,
+            'seats_booked': b.seats_booked,
+            'total_price': b.total_price,
+            'status': b.status,
+            'created_at': b.created_at.isoformat() if b.created_at else None
+        } for b in bookings], 200
+
+class DriverTransportBookingsResource(Resource):
+    @jwt_required()
+    def get(self, transport_id):
+        """Get all bookings for a specific transport"""
+        claims = get_jwt()
+        role = claims.get("role")
+        current_user_id = get_jwt_identity()
+        
+        if role != 'driver':
+            return {"message": "Access denied. Driver access only."}, 403
+        
+        # Check if the transport exists and belongs to this driver
+        transport = Transport.query.filter_by(id=transport_id).first()
+        if not transport:
+            return {"message": "Transport not found"}, 404
+        
+        if transport.driver_id != current_user_id:
+            return {"message": "Access denied. You don't own this transport."}, 403
+        
+        # Get all bookings for this transport
+        bookings = TransportBooking.query.filter_by(
+            transport_id=transport_id
+        ).all()
+
+        return [{
+            'id': b.id,
+            'tourist_id': b.tourist_id,
+            'transport_id': b.transport_id,
+            'travel_date': b.travel_date.isoformat() if b.travel_date else None,
+            'seats_booked': b.seats_booked,
+            'total_price': b.total_price,
+            'status': b.status,
+            'created_at': b.created_at.isoformat() if b.created_at else None
+        } for b in bookings], 200
 
 #wip
